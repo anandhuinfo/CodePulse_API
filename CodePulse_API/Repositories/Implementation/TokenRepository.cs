@@ -41,7 +41,7 @@ namespace CodePulse_API.Repositories.Implementation
                 signingCredentials: credentials);
 
             // Return Token
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return new JwtSecurityTokenHandler().WriteToken(token); 
         
         }
     }
