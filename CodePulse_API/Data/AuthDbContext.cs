@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using CodePulse_API.Models.Domain;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CodePulse_API.Data
 {
-    public class AuthDbContext : IdentityDbContext
+    public class AuthDbContext : IdentityDbContext<AuthUser>
     {
         public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options)
         {
@@ -38,19 +39,21 @@ namespace CodePulse_API.Data
             var adminUserId = "f3ead830 - a200 - 4b5b - 9997 - 58a424f7dcef";
 
             // Create an Admin User
-            var admin = new IdentityUser() { 
+            var admin = new AuthUser() { 
                 Id = adminUserId,
                 UserName = "admin@codePulse.com",
                 Email = "admin@codePulse.com",
                 NormalizedEmail = "admin@codePulse.com".ToUpper(),
                 NormalizedUserName = "admin@codePulse.com".ToUpper(),
-                
+                Token = string.Empty,
+                RefreshToken = string.Empty,
+                RefreshTokenExpiryTime = DateTime.Now
             };
 
             admin.PasswordHash = new PasswordHasher<IdentityUser>().HashPassword(admin, "Admin@123");
 
             
-            builder.Entity<IdentityUser>().HasData(admin);
+            builder.Entity<AuthUser>().HasData(admin);
 
             // Give Roles to Admin
             var adminRoles = new List<IdentityUserRole<string>>() {
@@ -67,5 +70,7 @@ namespace CodePulse_API.Data
             builder.Entity<IdentityUserRole<string>>().HasData(adminRoles);
 
         }
+
+        public DbSet<AuthUser> AuthUsers { get; set; }
     }
 }

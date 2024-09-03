@@ -1,4 +1,5 @@
 using CodePulse_API.Data;
+using CodePulse_API.Models.Domain;
 using CodePulse_API.Repositories.Implementation;
 using CodePulse_API.Repositories.Interface;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -32,13 +33,15 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
 
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 
 // Register Authentication
-builder.Services.AddIdentityCore<IdentityUser>()
+builder.Services.AddIdentityCore<AuthUser>()
     .AddRoles<IdentityRole>()
-    .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("CodePulse")
+    .AddTokenProvider<DataProtectorTokenProvider<AuthUser>>("CodePulse")
     .AddEntityFrameworkStores<AuthDbContext>()
     .AddDefaultTokenProviders();
+
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -49,6 +52,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequiredLength = 6;
     options.Password.RequiredUniqueChars = 1;
 });
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -62,6 +66,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
+            
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
@@ -76,7 +81,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors(options => { options.AllowAnyHeader();
+app.UseCors(options => { 
+    options.AllowAnyHeader();
     options.AllowAnyOrigin();
     options.AllowAnyMethod();
 });

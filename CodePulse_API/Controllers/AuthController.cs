@@ -1,4 +1,6 @@
-﻿using CodePulse_API.Models.DTO;
+﻿using CodePulse_API.Data;
+using CodePulse_API.Models.Domain;
+using CodePulse_API.Models.DTO;
 using CodePulse_API.Repositories.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -11,38 +13,63 @@ namespace CodePulse_API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> userManager;
+        private readonly UserManager<AuthUser> userManager;
         private readonly ITokenRepository tokenRepository;
 
-        public AuthController(UserManager<IdentityUser> userManager, ITokenRepository tokenRepository)
+        public AuthController(UserManager<AuthUser> userManager, ITokenRepository tokenRepository)
+        
         {
-            this.userManager = userManager;
             this.tokenRepository = tokenRepository;
+            this.userManager = userManager;
         }
 
         // apibasrUrl/auth/login
         [HttpPost]
         [Route("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDto request) { 
-        
-          var identityUser =  await userManager.FindByEmailAsync(request.Email);
-            if (identityUser is not null) { 
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request) {
+
+            var identityUser =  await userManager.FindByEmailAsync(request.Email);           
+            if (identityUser is not null) {
                 var checkPasswordResult = await userManager.CheckPasswordAsync(identityUser, request.Password);
-                if (checkPasswordResult) {
+
+               if (checkPasswordResult) {
+                   
                     var roles = await userManager.GetRolesAsync(identityUser);
+                    // Create Access Token
+                    var jwttoken = tokenRepository.CreateJwtToken(identityUser);
 
-                    // Create Token
-
-                    var jwttoken = tokenRepository.CreateJwtToken(identityUser, roles.ToList());
-
-                    var response = new LoginResponseDto()
-                    {
-                        eMail = request.Email,
-                        Roles = roles.ToList(),
-                        Token = jwttoken
+                    var authUsers = new AuthUser() { 
+                        Id = identityUser.Id,
+                        UserName = identityUser.UserName,
+                        NormalizedUserName = identityUser.NormalizedUserName,
+                        Email = identityUser.Email,
+                        NormalizedEmail = identityUser.NormalizedEmail,
+                        PasswordHash = identityUser.PasswordHash,
+                        Token = jwttoken,
+                        RefreshToken = identityUser.RefreshToken,
+                        RefreshTokenExpiryTime = identityUser.RefreshTokenExpiryTime
                     };
 
-                    return Ok(response);
+                    if (authUsers.RefreshToken == null 
+                        && (authUsers.RefreshTokenExpiryTime.ToString() == "0001-01-01 00:00:00.0000000" 
+                        || authUsers.RefreshTokenExpiryTime <= DateTime.Now))
+                    {
+                        // Create Refresh Token
+                        authUsers.RefreshToken = tokenRepository.CreateRefreshToken(authUsers.RefreshToken);
+                        authUsers.RefreshTokenExpiryTime = tokenRepository.SetRefreshTokenExpiry();
+                    }
+                    // Store Access & Refresh token in DB
+                    var result = await tokenRepository.UpdateJwtToken(authUsers);
+
+                    var returnResponse = new LoginResponseDto() {
+                        AccessToken = authUsers.Token,
+                        RefreshToken = authUsers.RefreshToken,
+                        RefreshTokenExpiryTime = authUsers.RefreshTokenExpiryTime,
+                        eMail = authUsers.Email,
+                        Roles = roles.ToList()
+                    };
+
+                    return Ok(returnResponse);
                 }
             }
 
@@ -55,7 +82,7 @@ namespace CodePulse_API.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
             // Create Identity User Object
-            var user = new IdentityUser
+            var user = new AuthUser
             {
                 UserName = request.eMail.Trim(),
                 Email = request.eMail.Trim()
@@ -97,6 +124,20 @@ namespace CodePulse_API.Controllers
 
             return ValidationProblem(ModelState);
 
+        }
+
+        [HttpPost]
+        [Route("refresh")]
+        public async Task<IActionResult> RefreshToken(TokenApiDto responseDto) {
+
+            if (responseDto is null)
+                return BadRequest("Invalid Client Request");
+
+            //var res = tokenRepository.CreateRefreshToken(responseDto.RefreshToken);
+            var res = await tokenRepository.RefreshToken(responseDto);
+
+            return Ok(res);
+            //return null;
         }
     }
 }

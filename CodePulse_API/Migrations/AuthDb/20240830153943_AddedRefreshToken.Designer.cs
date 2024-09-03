@@ -4,6 +4,7 @@ using CodePulse_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CodePulse_API.Migrations.AuthDb
 {
     [DbContext(typeof(AuthDbContext))]
-    partial class AuthDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240830153943_AddedRefreshToken")]
+    partial class AddedRefreshToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -94,27 +97,6 @@ namespace CodePulse_API.Migrations.AuthDb
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "f3ead830 - a200 - 4b5b - 9997 - 58a424f7dcef",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "ddf7a5b9-f91d-465a-a1e3-29a24dc6d452",
-                            Email = "admin@codePulse.com",
-                            EmailConfirmed = false,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "ADMIN@CODEPULSE.COM",
-                            NormalizedUserName = "ADMIN@CODEPULSE.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEDl+MRs9SSkg+WrsfytzsubUlMW89UO5wPozaDf2SEPvbkhFekGzdhxMwe1OlSEibQ==",
-                            PhoneNumberConfirmed = false,
-                            RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2024, 8, 30, 11, 27, 59, 850, DateTimeKind.Local).AddTicks(5101),
-                            SecurityStamp = "29287299-523e-41e5-aa0f-ae80788c4270",
-                            Token = "",
-                            TwoFactorEnabled = false,
-                            UserName = "admin@codePulse.com"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -183,6 +165,76 @@ namespace CodePulse_API.Migrations.AuthDb
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("IdentityUser");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "f3ead830 - a200 - 4b5b - 9997 - 58a424f7dcef",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "6384820a-5775-4993-9926-cd3ed8662ff3",
+                            Email = "admin@codePulse.com",
+                            EmailConfirmed = false,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "ADMIN@CODEPULSE.COM",
+                            NormalizedUserName = "ADMIN@CODEPULSE.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGmVi5a3zy9Q7TDS0JeTz+MYawKjyXpmn5osTx5/S7byFgdhS6lEYZBfOdx5U4cG7w==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "f10c7a4e-ec02-42c4-b4f0-3ef5f93620d9",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@codePulse.com"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>

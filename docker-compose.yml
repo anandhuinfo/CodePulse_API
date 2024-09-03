@@ -1,0 +1,6 @@
+services:
+  codepulse_api:
+    image: ${DOCKER_REGISTRY-}codepulseapi
+    build:
+      context: .
+      dockerfile: CodePulse_API\Dockerfile
